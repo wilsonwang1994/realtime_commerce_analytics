@@ -1,3 +1,23 @@
+Metadata-Version: 2.4
+Name: realtime-commerce-analytics-platform
+Version: 0.1.0
+Summary: Local real-time commerce analytics platform for GMV, orders, refunds, and conversion metrics.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: clickhouse-connect>=0.8.0
+Requires-Dist: confluent-kafka>=2.6.0
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: pydantic>=2.8.0
+Requires-Dist: pydantic-settings>=2.4.0
+Requires-Dist: python-dateutil>=2.9.0
+Requires-Dist: uvicorn[standard]>=0.30.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.3.0; extra == "dev"
+Requires-Dist: ruff>=0.6.0; extra == "dev"
+Requires-Dist: httpx>=0.27.0; extra == "dev"
+Provides-Extra: flink
+Requires-Dist: apache-flink>=1.19.0; extra == "flink"
+
 # Realtime Commerce Analytics Platform
 
 A local real-time analytics platform for an e-commerce operation team. It monitors GMV, order count, refund rate, and conversion rate from streaming `order` and `payment` events. The demo handles duplicate events, delayed/out-of-order event-time data, replay/backfill, and schema evolution.

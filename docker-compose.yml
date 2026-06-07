@@ -1,0 +1,100 @@
+services:
+  redpanda:
+    image: redpandadata/redpanda:v24.2.8
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
+    ports:
+      - "19092:19092"
+      - "9644:9644"
+
+  redpanda-console:
+    image: redpandadata/console:v2.7.2
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: commerce
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: clickhouse
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      APP_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      APP_CLICKHOUSE_HOST: clickhouse
+      APP_CLICKHOUSE_PORT: 8123
+      APP_CLICKHOUSE_DATABASE: commerce
+      APP_CLICKHOUSE_USERNAME: default
+      APP_CLICKHOUSE_PASSWORD: clickhouse
+    command: uv run uvicorn realtime_commerce_analytics.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    restart: on-failure
+
+  worker:
+    build: .
+    environment:
+      APP_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      APP_CLICKHOUSE_HOST: clickhouse
+      APP_CLICKHOUSE_PORT: 8123
+      APP_CLICKHOUSE_DATABASE: commerce
+      APP_CLICKHOUSE_USERNAME: default
+      APP_CLICKHOUSE_PASSWORD: clickhouse
+    command: uv run python -m realtime_commerce_analytics.processor.worker
+    depends_on:
+      redpanda:
+        condition: service_started
+      clickhouse:
+        condition: service_healthy
+    restart: on-failure
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - clickhouse
+
+volumes:
+  clickhouse-data:
+  grafana-data:
