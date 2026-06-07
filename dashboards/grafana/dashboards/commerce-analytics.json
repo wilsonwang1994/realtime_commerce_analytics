@@ -1,0 +1,69 @@
+{
+  "uid": "commerce-analytics",
+  "title": "Realtime Commerce Analytics",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "GMV",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "ClickHouse" },
+      "targets": [
+        {
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT window_start AS time, gmv FROM commerce.metric_1m ORDER BY window_start"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Order Count",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "ClickHouse" },
+      "targets": [
+        {
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT window_start AS time, order_count FROM commerce.metric_1m ORDER BY window_start"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Refund Rate",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "ClickHouse" },
+      "targets": [
+        {
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT window_start AS time, refund_rate FROM commerce.metric_1m ORDER BY window_start"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Conversion Rate",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "ClickHouse" },
+      "targets": [
+        {
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT window_start AS time, conversion_rate FROM commerce.metric_1m ORDER BY window_start"
+        }
+      ]
+    }
+  ]
+}
